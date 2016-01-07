@@ -49,5 +49,9 @@
         <attr name="horizontalFlingEnabled" format="boolean"/>
         <attr name="verticalFlingEnabled" format="boolean"/>
         <attr name="customTypefacePath" format="string"/>
+        <attr name="showTwoHeaderColumn" format="boolean"/>
+        <attr name="firstHeaderTextSize" format="dimension"/>
+        <attr name="secondHeaderTextSize" format="dimension"/>
+        <attr name="showCurrentDayAfterInit" format="boolean"/>
     </declare-styleable>
 </resources>

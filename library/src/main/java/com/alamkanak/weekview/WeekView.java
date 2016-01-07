@@ -151,6 +151,20 @@ public class WeekView extends View {
     private String mCustomTypefacePath;
     private Typeface mCustomTypeface;
 
+    private boolean mShowTwoHeaderColumn = false;
+    private int mFirstHeaderTextSize = 12;
+    private int mSecondHeaderTextSize = 12;
+    private Paint mFirstHeaderTextPaint;
+    private Paint mSecondHeaderTextPaint;
+    private Paint mFirstHeaderTodayTextPaint;
+    private Paint mSecondHeaderTodayTextPaint;
+
+    private int mFirstHeaderTextHeight;
+    private int mSecondHeaderTextHeight;
+
+    private boolean mShowCurrentDayAfterInit = false;
+
+
     private final GestureDetector.SimpleOnGestureListener mGestureListener = new GestureDetector.SimpleOnGestureListener() {
 
         @Override
@@ -353,6 +367,11 @@ public class WeekView extends View {
             if(!TextUtils.isEmpty(mCustomTypefacePath)){
                 mCustomTypeface = Typeface.createFromAsset(getContext().getAssets(),mCustomTypefacePath);
             }
+
+            mShowTwoHeaderColumn = a.getBoolean(R.styleable.WeekView_showTwoHeaderColumn,mShowTwoHeaderColumn);
+            mFirstHeaderTextSize = a.getDimensionPixelSize(R.styleable.WeekView_firstHeaderTextSize, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,mFirstHeaderTextSize,context.getResources().getDisplayMetrics()));
+            mSecondHeaderTextSize = a.getDimensionPixelSize(R.styleable.WeekView_secondHeaderTextSize, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,mSecondHeaderTextSize,context.getResources().getDisplayMetrics()));
+            mShowCurrentDayAfterInit = a.getBoolean(R.styleable.WeekView_showCurrentDayAfterInit,mShowCurrentDayAfterInit);
         } finally {
             a.recycle();
         }
@@ -380,12 +399,57 @@ public class WeekView extends View {
         initTextTimeWidth();
 
         // Measure settings for header row.
-        mHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mHeaderTextPaint.setColor(mHeaderColumnTextColor);
-        mHeaderTextPaint.setTextAlign(Paint.Align.CENTER);
-        mHeaderTextPaint.setTextSize(mTextSize);
-        mHeaderTextPaint.getTextBounds("00 PM", 0, "00 PM".length(), rect);
-        mHeaderTextHeight = rect.height();
+
+        // decide if show one header or two header
+        if(mShowTwoHeaderColumn){
+            mFirstHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mFirstHeaderTextPaint.setColor(mHeaderColumnTextColor);
+            mFirstHeaderTextPaint.setTextAlign(Paint.Align.RIGHT);
+            mFirstHeaderTextPaint.setTextSize(mFirstHeaderTextSize);
+            mFirstHeaderTextPaint.getTextBounds("00 PM", 0, "00 PM".length(), rect);
+            mFirstHeaderTextHeight = rect.height();
+
+
+            mSecondHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mSecondHeaderTextPaint.setColor(mHeaderColumnTextColor);
+            mSecondHeaderTextPaint.setTextAlign(Paint.Align.RIGHT);
+            mSecondHeaderTextPaint.setTextSize(mSecondHeaderTextSize);
+            mSecondHeaderTextPaint.getTextBounds("00 PM", 0, "00 PM".length(), rect);
+            mSecondHeaderTextHeight = rect.height();
+
+            mFirstHeaderTodayTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mFirstHeaderTodayTextPaint.setColor(mTodayHeaderTextColor);
+            mFirstHeaderTodayTextPaint.setTextAlign(Paint.Align.RIGHT);
+            mFirstHeaderTodayTextPaint.setTextSize(mFirstHeaderTextSize);
+            mFirstHeaderTodayTextPaint.getTextBounds("00 PM", 0, "00 PM".length(), rect);
+            mFirstHeaderTextHeight = rect.height();
+
+            mSecondHeaderTodayTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mSecondHeaderTodayTextPaint.setColor(mTodayHeaderTextColor);
+            mSecondHeaderTodayTextPaint.setTextAlign(Paint.Align.RIGHT);
+            mSecondHeaderTodayTextPaint.setTextSize(mFirstHeaderTextSize);
+            mSecondHeaderTodayTextPaint.getTextBounds("00 PM", 0, "00 PM".length(), rect);
+            mSecondHeaderTextHeight = rect.height();
+
+            mHeaderTextHeight = mFirstHeaderTextHeight + mSecondHeaderTextHeight;
+
+        }else {
+            mHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mHeaderTextPaint.setColor(mHeaderColumnTextColor);
+            mHeaderTextPaint.setTextAlign(Paint.Align.CENTER);
+            mHeaderTextPaint.setTextSize(mTextSize);
+            mHeaderTextPaint.getTextBounds("00 PM", 0, "00 PM".length(), rect);
+            mHeaderTextHeight = rect.height();
+
+            // Prepare today header text color paint.
+            mTodayHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mTodayHeaderTextPaint.setTextAlign(Paint.Align.CENTER);
+            mTodayHeaderTextPaint.setTextSize(mTextSize);
+            mTodayHeaderTextPaint.setColor(mTodayHeaderTextColor);
+
+        }
+
+
 
         // Prepare header background paint.
         mHeaderBackgroundPaint = new Paint();
@@ -418,11 +482,6 @@ public class WeekView extends View {
         mTodayBackgroundPaint = new Paint();
         mTodayBackgroundPaint.setColor(mTodayBackgroundColor);
 
-        // Prepare today header text color paint.
-        mTodayHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mTodayHeaderTextPaint.setTextAlign(Paint.Align.CENTER);
-        mTodayHeaderTextPaint.setTextSize(mTextSize);
-        mTodayHeaderTextPaint.setColor(mTodayHeaderTextColor);
 
         // Prepare event background color.
         mEventBackgroundPaint = new Paint();
@@ -444,9 +503,16 @@ public class WeekView extends View {
         // set custom typeface
         if(mCustomTypeface != null){
             mTimeTextPaint.setTypeface(mCustomTypeface);
-            mHeaderTextPaint.setTypeface(mCustomTypeface);
-            mTodayHeaderTextPaint.setTypeface(mCustomTypeface);
+            if(mHeaderTextPaint != null && mTodayHeaderTextPaint != null){
+                mHeaderTextPaint.setTypeface(mCustomTypeface);
+                mTodayHeaderTextPaint.setTypeface(mCustomTypeface);
+            }
             mEventTextPaint.setTypeface(mCustomTypeface);
+
+            mFirstHeaderTextPaint.setTypeface(mCustomTypeface);
+            mSecondHeaderTextPaint.setTypeface(mCustomTypeface);
+            mFirstHeaderTodayTextPaint.setTypeface(mCustomTypeface);
+            mSecondHeaderTodayTextPaint.setTypeface(mCustomTypeface);
         }else {
             mHeaderTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
             mTodayHeaderTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
@@ -554,9 +620,11 @@ public class WeekView extends View {
             mIsFirstDraw = false;
 
             // If the week view is being drawn for the first time, then consider the first day of the week.
-            if(mNumberOfVisibleDays >= 7 && today.get(Calendar.DAY_OF_WEEK) != mFirstDayOfWeek) {
-                int difference = 7 + (today.get(Calendar.DAY_OF_WEEK) - mFirstDayOfWeek);
-                mCurrentOrigin.x += (mWidthPerDay + mColumnGap) * difference;
+            if(!mShowCurrentDayAfterInit) {
+                if(mNumberOfVisibleDays >= 7 && today.get(Calendar.DAY_OF_WEEK) != mFirstDayOfWeek) {
+                    int difference = 7 + (today.get(Calendar.DAY_OF_WEEK) - mFirstDayOfWeek);
+                    mCurrentOrigin.x += (mWidthPerDay + mColumnGap) * difference;
+                }
             }
         }
 
@@ -712,7 +780,25 @@ public class WeekView extends View {
             String dayLabel = getDateTimeInterpreter().interpretDate(day);
             if (dayLabel == null)
                 throw new IllegalStateException("A DateTimeInterpreter must not return null date");
-            canvas.drawText(dayLabel, startPixel + mWidthPerDay / 2, mHeaderTextHeight + mHeaderRowPadding, sameDay ? mTodayHeaderTextPaint : mHeaderTextPaint);
+
+            if(mShowTwoHeaderColumn){
+                String dayDateHeader = (String) DateFormat.format("dd",day);
+                String dayNameHeader = (String) DateFormat.format("EE",day);
+
+                float xValue = startPixel + mWidthPerDay;
+
+                if(mNumberOfVisibleDays == 1){
+                    canvas.drawText(dayDateHeader,xValue - mHeaderRowPadding, mFirstHeaderTextHeight + mHeaderRowPadding,sameDay ? mFirstHeaderTodayTextPaint : mFirstHeaderTextPaint);
+                    canvas.drawText(dayNameHeader,xValue - mHeaderRowPadding, mSecondHeaderTextHeight * 2 + mHeaderRowPadding + mHeaderRowPadding / 2,sameDay ? mSecondHeaderTodayTextPaint : mSecondHeaderTextPaint);
+                }else {
+                    canvas.drawText(dayDateHeader,xValue, mFirstHeaderTextHeight + mHeaderRowPadding,sameDay ? mFirstHeaderTodayTextPaint : mFirstHeaderTextPaint);
+                    canvas.drawText(dayNameHeader,xValue, mSecondHeaderTextHeight * 2 + mHeaderRowPadding + mHeaderRowPadding / 2,sameDay ? mSecondHeaderTodayTextPaint : mSecondHeaderTextPaint);
+                }
+
+            }else {
+                canvas.drawText(dayLabel, startPixel + mWidthPerDay / 2, mHeaderTextHeight + mHeaderRowPadding, sameDay ? mTodayHeaderTextPaint : mHeaderTextPaint);
+            }
+
             startPixel += mWidthPerDay + mColumnGap;
         }
 
@@ -1363,9 +1449,19 @@ public class WeekView extends View {
 
     public void setTextSize(int textSize) {
         mTextSize = textSize;
-        mTodayHeaderTextPaint.setTextSize(mTextSize);
-        mHeaderTextPaint.setTextSize(mTextSize);
-        mTimeTextPaint.setTextSize(mTextSize);
+        if(mHeaderTextPaint != null){
+            mTodayHeaderTextPaint.setTextSize(mTextSize);
+            mHeaderTextPaint.setTextSize(mTextSize);
+            mTimeTextPaint.setTextSize(mTextSize);
+        }
+
+        if(mFirstHeaderTextPaint != null){
+            mFirstHeaderTextPaint.setTextSize(mFirstHeaderTextSize);
+            mSecondHeaderTextPaint.setTextSize(mSecondHeaderTextSize);
+            mFirstHeaderTodayTextPaint.setTextSize(mFirstHeaderTextSize);
+            mSecondHeaderTodayTextPaint.setTextSize(mSecondHeaderTextSize);
+        }
+
         invalidate();
     }
 
