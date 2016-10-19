@@ -14,14 +14,20 @@ android {
     }
 }
 
-dependencies {
-    compile 'com.android.support:appcompat-v7:23.1.1'
+allprojects {
+    tasks.withType(Javadoc).all { enabled = false }
+}
+//Solution by the first link
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
 }
 
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    failOnError false
+dependencies {
+    compile 'com.android.support:appcompat-v7:23.1.1'
 }
 
 apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
