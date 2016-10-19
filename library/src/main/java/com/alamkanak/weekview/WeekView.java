@@ -1398,6 +1398,7 @@ public class WeekView extends View {
         mTodayHeaderTextPaint.setTextSize(mTextSize);
         mHeaderTextPaint.setTextSize(mTextSize);
         mTimeTextPaint.setTextSize(mTextSize);
+        workdaysPaint.setTextSize(mTextSize);
         invalidate();
     }
 
