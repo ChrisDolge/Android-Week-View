@@ -142,7 +142,7 @@ public class WeekView extends View {
     private boolean mHorizontalFlingEnabled = true;
     private boolean mVerticalFlingEnabled = true;
 
-    private ArrayList<Integer> workdays;
+    private ArrayList<Integer> workdays = new ArrayList<>();
     private Paint workdaysPaint = new Paint();
 
     public ArrayList<Integer> getWorkdays() {
