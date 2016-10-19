@@ -47,6 +47,8 @@ import java.util.Locale;
  */
 public class WeekView extends View {
 
+    private int workdaysTextColor = Color.rgb(227, 227, 227);
+
     private enum Direction {
         NONE, LEFT, RIGHT, VERTICAL
     }
@@ -138,6 +140,27 @@ public class WeekView extends View {
     private boolean mShowDistinctPastFutureColor = false;
     private boolean mHorizontalFlingEnabled = true;
     private boolean mVerticalFlingEnabled = true;
+
+    private ArrayList<Integer> workdays;
+    private Paint workdaysPaint = new Paint();
+
+    public ArrayList<Integer> getWorkdays() {
+        return workdays;
+    }
+
+    public void setWorkdays(ArrayList<Integer> workdays) {
+        this.workdays = workdays;
+    }
+
+    public Paint getWorkdaysPaint() {
+        return workdaysPaint;
+    }
+
+    public void setWorkdaysPaint(int color) {
+        workdaysPaint.setColor(color);
+    }
+
+
 
     // Listeners.
     private EventClickListener mEventClickListener;
@@ -328,6 +351,7 @@ public class WeekView extends View {
             mNowLineThickness = a.getDimensionPixelSize(R.styleable.WeekView_nowLineThickness, mNowLineThickness);
             mHourSeparatorColor = a.getColor(R.styleable.WeekView_hourSeparatorColor, mHourSeparatorColor);
             mTodayBackgroundColor = a.getColor(R.styleable.WeekView_todayBackgroundColor, mTodayBackgroundColor);
+            workdaysTextColor = a.getColor(R.styleable.WeekView_workdaysTextColor,workdaysTextColor);
             mHourSeparatorHeight = a.getDimensionPixelSize(R.styleable.WeekView_hourSeparatorHeight, mHourSeparatorHeight);
             mTodayHeaderTextColor = a.getColor(R.styleable.WeekView_todayHeaderTextColor, mTodayHeaderTextColor);
             mEventTextSize = a.getDimensionPixelSize(R.styleable.WeekView_eventTextSize, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, mEventTextSize, context.getResources().getDisplayMetrics()));
@@ -378,6 +402,13 @@ public class WeekView extends View {
         mHeaderTextPaint.getTextBounds("00 PM", 0, "00 PM".length(), rect);
         mHeaderTextHeight = rect.height();
         mHeaderTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
+
+        workdaysPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        workdaysPaint.setColor(workdaysTextColor);
+        workdaysPaint.setTextAlign(Paint.Align.CENTER);
+        workdaysPaint.setTextSize(mTextSize);
+        workdaysPaint.getTextBounds("00 PM", 0, "00 PM".length(), rect);
+        workdaysPaint.setTypeface(Typeface.DEFAULT_BOLD);
 
         // Prepare header background paint.
         mHeaderBackgroundPaint = new Paint();
@@ -694,7 +725,12 @@ public class WeekView extends View {
             String dayLabel = getDateTimeInterpreter().interpretDate(day);
             if (dayLabel == null)
                 throw new IllegalStateException("A DateTimeInterpreter must not return null date");
-            canvas.drawText(dayLabel, startPixel + mWidthPerDay / 2, mHeaderTextHeight + mHeaderRowPadding, sameDay ? mTodayHeaderTextPaint : mHeaderTextPaint);
+
+            if (workdays.contains(day.get(Calendar.DAY_OF_WEEK))) {
+                canvas.drawText(dayLabel, startPixel + mWidthPerDay / 2, mHeaderTextHeight + mHeaderRowPadding, workdaysPaint);
+            } else {
+                canvas.drawText(dayLabel, startPixel + mWidthPerDay / 2, mHeaderTextHeight + mHeaderRowPadding, sameDay ? mTodayHeaderTextPaint : mHeaderTextPaint);
+            }
             startPixel += mWidthPerDay + mColumnGap;
         }
 
