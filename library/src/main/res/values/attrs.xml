@@ -53,5 +53,6 @@
         <attr name="firstHeaderTextSize" format="dimension"/>
         <attr name="secondHeaderTextSize" format="dimension"/>
         <attr name="showCurrentDayAfterInit" format="boolean"/>
+        <attr name="workdaysTextColor" format="color"/>
     </declare-styleable>
 </resources>
